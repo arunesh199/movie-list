@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<title>The Long Take</title>
+<meta name="description" content="Thirty films, one question at a time. A private logbook for what each one did to you.">
+<meta name="theme-color" content="#0F1413">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Long Take">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F1413'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23E3A13F' stroke-width='2'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23E3A13F' stroke-width='1.2'/%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   THE LONG TAKE — design tokens
+   Direction: a projection booth at 1 a.m.
+   Three colours, three jobs:
+     amber  = the curriculum's counter / progress   (given)
+     green  = exposed frames / what you've done     (earned)
+     blue   = your own handwriting over the print   (yours)
+   ============================================================ */
+:root{
+  --stock:#0F1413;
+  --stock-deep:#0A0E0D;
+  --surface:#171E1D;
+  --surface-2:#1F2827;
+  --line:#2A3433;
+  --line-soft:#212B2A;
+  --bone:#EAE6DA;
+  --dust:#8B9591;
+  --dust-dim:#606B68;
+  --leader:#E3A13F;
+  --leader-dim:#8A6427;
+  --exposed:#63B49F;
+  --exposed-dim:#2E5B51;
+  --pen:#7FA8C9;
+  --pen-dim:#3B5468;
+  --burn:#D2552F;
+
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+
+  --r-sm:8px; --r:14px; --r-lg:20px;
+  --pad:18px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --tabbar:64px;
+  --ease:cubic-bezier(.22,.68,.32,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--stock);
+  color:var(--bone);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+  min-height:100dvh;
+}
+/* static projector grain — one texture, no motion */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9;opacity:.038;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:var(--pen)}
+:focus-visible{outline:2px solid var(--leader);outline-offset:2px;border-radius:4px}
+::selection{background:var(--leader-dim);color:var(--bone)}
+
+/* ---------- shell ---------- */
+.app{max-width:560px;margin:0 auto;padding:0 var(--pad);padding-bottom:calc(var(--tabbar) + var(--safe-b) + 26px)}
+.screen{display:none;animation:fadeup .34s var(--ease) both}
+.screen.on{display:block}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- header ---------- */
+.top{
+  position:sticky;top:0;z-index:8;
+  margin:0 calc(var(--pad) * -1);padding:calc(var(--safe-t) + 14px) var(--pad) 12px;
+  background:linear-gradient(180deg,var(--stock) 74%,rgba(15,20,19,0));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{font-family:var(--serif);font-size:27px;line-height:1;letter-spacing:.2px}
+.brand em{font-style:italic;color:var(--leader)}
+.brandmeta{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust-dim);white-space:nowrap}
+
+/* ---------- filmstrip progress (the signature) ---------- */
+.strip{margin-top:14px}
+.perf{height:5px;border-radius:2px;
+  background-image:radial-gradient(circle at 3px 2.5px,var(--line) 1.6px,transparent 1.7px);
+  background-size:10px 5px;opacity:.85}
+.cells{display:flex;gap:2px;padding:4px 0}
+.cell{flex:1;height:26px;border-radius:2px;background:var(--surface);border:1px solid var(--line-soft);
+  transform-origin:center bottom;transition:background .45s var(--ease),border-color .45s var(--ease)}
+.cell.lit{background:linear-gradient(180deg,var(--exposed-dim),#22423A);border-color:var(--exposed-dim)}
+.cell.now{background:linear-gradient(180deg,#4A3618,#2A2114);border-color:var(--leader-dim);box-shadow:inset 0 0 0 1px rgba(227,161,63,.28)}
+.cell.enter{animation:expose .5s var(--ease) both}
+@keyframes expose{from{opacity:0;transform:scaleY(.25)}to{opacity:1;transform:none}}
+.striplabel{display:flex;justify-content:space-between;align-items:center;margin-top:8px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dust-dim)}
+.striplabel b{color:var(--exposed);font-weight:600}
+
+/* ---------- section headings ---------- */
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dust-dim);margin:30px 0 10px;display:flex;align-items:center;gap:10px}
+.eyebrow::after{content:'';flex:1;height:1px;background:var(--line-soft)}
+
+/* ---------- tonight card ---------- */
+.tonight{position:relative;display:block;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px 18px 16px;overflow:hidden;transition:transform .18s var(--ease)}
+.tonight:active{transform:scale(.988)}
+.tonight::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 88% -10%,rgba(227,161,63,.16),transparent 62%)}
+.tonight .num{font-family:var(--serif);font-size:15px;color:var(--leader);letter-spacing:.06em}
+.tonight h3{font-family:var(--serif);font-size:31px;line-height:1.08;margin:6px 0 6px;font-weight:400}
+.tonight .facts{font-family:var(--mono);font-size:11px;color:var(--dust);letter-spacing:.04em}
+.tonight .qline{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);
+  font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.36;color:var(--bone);opacity:.92}
+.tonight .cta{margin-top:14px;display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--leader)}
+.shuffle{margin-top:10px;width:100%;padding:11px;border:1px dashed var(--line);border-radius:var(--r);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust)}
+.shuffle:active{background:var(--surface)}
+
+/* ---------- chapters ---------- */
+.chapter{margin-top:30px}
+.chead{display:flex;gap:12px;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid var(--line-soft)}
+.croman{font-family:var(--serif);font-size:21px;color:var(--leader);line-height:1;min-width:34px;padding-top:3px}
+.ctitle{flex:1}
+.ctitle h2{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.16;margin:0}
+.ctitle p{margin:4px 0 0;font-size:12.5px;color:var(--dust);line-height:1.45}
+.cprog{font-family:var(--mono);font-size:11px;color:var(--dust-dim);padding-top:4px;white-space:nowrap}
+.cprog.done{color:var(--exposed)}
+
+/* ---------- film row ---------- */
+.film{display:flex;gap:13px;width:100%;text-align:left;padding:14px 2px;border-bottom:1px solid var(--line-soft);
+  transition:opacity .2s var(--ease)}
+.film:active{opacity:.55}
+.mark{width:31px;height:31px;border-radius:50%;border:1.5px solid var(--line);flex:none;
+  display:grid;place-items:center;font-family:var(--serif);font-size:14px;color:var(--dust);
+  margin-top:1px;transition:all .3s var(--ease)}
+.film.seen .mark{border-color:var(--exposed);background:rgba(99,180,159,.12);color:var(--exposed)}
+.fbody{flex:1;min-width:0}
+.ftitle{font-family:var(--serif);font-size:20px;line-height:1.2;font-weight:400;display:flex;gap:7px;align-items:baseline}
+.film.seen .ftitle{color:var(--dust)}
+.ffacts{font-family:var(--mono);font-size:10.5px;color:var(--dust-dim);letter-spacing:.03em;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fq{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--dust);margin-top:6px;line-height:1.35}
+.fmeta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}
+.stars{font-size:12px;letter-spacing:2px;color:var(--leader)}
+.stars .off{color:var(--line)}
+.seendate{font-family:var(--mono);font-size:10px;color:var(--exposed);letter-spacing:.06em}
+.tagdot{font-family:var(--mono);font-size:10px;color:var(--pen);letter-spacing:.04em}
+.flag{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--leader);border:1px solid var(--leader-dim);border-radius:99px;padding:1px 7px}
+
+/* ---------- sheet ---------- */
+.veil{position:fixed;inset:0;z-index:20;background:rgba(6,9,9,.72);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.veil.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;
+  height:94dvh;background:var(--stock);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  transform:translateY(102%);transition:transform .38s var(--ease);display:flex;flex-direction:column;overflow:hidden}
+.sheet.on{transform:none}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:9px auto 0;flex:none}
+.sheetscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px var(--pad) calc(var(--safe-b) + 40px)}
+.sheethead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-top:12px}
+.sheetnum{font-family:var(--serif);font-size:44px;line-height:.9;color:var(--leader-dim)}
+.closebtn{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust);
+  border:1px solid var(--line);border-radius:99px;padding:7px 13px}
+.sheet h1{font-family:var(--serif);font-weight:400;font-size:37px;line-height:1.04;margin:10px 0 8px}
+.sheetfacts{font-family:var(--mono);font-size:11px;color:var(--dust);letter-spacing:.04em;line-height:1.7}
+.hook{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.34;color:var(--bone);
+  margin:20px 0 0;padding-left:14px;border-left:2px solid var(--leader)}
+.blk{margin-top:22px}
+.blk h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dust-dim);margin:0 0 8px;font-weight:500}
+.blk p{margin:0;font-size:15px;line-height:1.62;color:#CFD3CE}
+.qbox{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.qbox h4{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--leader);margin:0 0 9px}
+.qbox p{font-family:var(--serif);font-size:21px;line-height:1.32;margin:0}
+.note{margin-top:14px;display:flex;gap:9px;font-size:13px;color:var(--dust);line-height:1.5}
+.note span{color:var(--leader);flex:none}
+
+/* ---------- your layer (pen blue) ---------- */
+.yours{margin-top:30px;border-top:1px solid var(--pen-dim);padding-top:18px}
+.yourshead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.yourshead h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pen);margin:0;font-weight:500}
+.saved{font-family:var(--mono);font-size:10px;color:var(--exposed);opacity:0;transition:opacity .25s}
+.saved.on{opacity:1}
+.watchbtn{width:100%;padding:15px;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--surface);font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--bone);transition:all .25s var(--ease)}
+.watchbtn.on{background:rgba(99,180,159,.11);border-color:var(--exposed);color:var(--exposed)}
+.daterow{display:flex;gap:9px;margin-top:11px;align-items:center}
+.daterow label{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dust-dim)}
+input[type=date]{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:10px 12px;font-family:var(--mono);font-size:12.5px;color:var(--bone)}
+.starpick{display:flex;gap:6px;margin-top:16px}
+.starbtn{flex:1;padding:12px 0;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);
+  font-size:19px;color:var(--line);line-height:1;transition:all .16s var(--ease)}
+.starbtn.on{color:var(--leader);border-color:var(--leader-dim);background:rgba(227,161,63,.08)}
+.starbtn.pop{animation:pop .3s var(--ease)}
+@keyframes pop{40%{transform:scale(1.22)}}
+.ratehint{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dust-dim);margin-top:8px;text-align:center;min-height:14px}
+.field{margin-top:18px}
+.field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pen);margin-bottom:7px}
+textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--pen-dim);
+  border-radius:var(--r-sm);padding:13px;font-family:var(--mono);font-size:13.5px;line-height:1.62;
+  color:var(--bone);resize:vertical;min-height:96px}
+textarea:focus{border-left-color:var(--pen);outline:none;border-color:var(--pen-dim)}
+textarea::placeholder{color:var(--dust-dim)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.chip{padding:8px 13px;border:1px solid var(--line);border-radius:99px;background:var(--surface);
+  font-size:12.5px;color:var(--dust);transition:all .18s var(--ease)}
+.chip.on{border-color:var(--pen);color:var(--pen);background:rgba(127,168,201,.1)}
+
+/* ---------- log ---------- */
+.logitem{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-left:2px solid var(--pen-dim);border-radius:var(--r);padding:15px;margin-bottom:11px}
+.logitem:active{border-color:var(--pen-dim)}
+.logtop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.logtop h3{font-family:var(--serif);font-weight:400;font-size:21px;margin:0;line-height:1.15}
+.logdate{font-family:var(--mono);font-size:10px;color:var(--dust-dim);white-space:nowrap;letter-spacing:.06em}
+.logbody{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:#B9C0BC;margin-top:9px;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.logempty{font-family:var(--mono);font-size:11px;color:var(--dust-dim);margin-top:9px}
+
+/* ---------- stats ---------- */
+.bignum{font-family:var(--serif);font-size:74px;line-height:.92;color:var(--bone)}
+.bignum small{font-size:26px;color:var(--dust-dim)}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.statbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.statbox .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust-dim)}
+.statbox .v{font-family:var(--serif);font-size:30px;line-height:1.1;margin-top:5px}
+.bar{margin-bottom:13px}
+.barhead{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:6px;align-items:baseline}
+.barhead span:last-child{font-family:var(--mono);font-size:10.5px;color:var(--dust-dim);white-space:nowrap}
+.track{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.fill{height:100%;border-radius:99px;background:var(--exposed);width:0;transition:width .9s var(--ease)}
+.fill.amber{background:var(--leader)}
+.fill.pen{background:var(--pen)}
+
+/* ---------- more ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:11px}
+.card h3{font-family:var(--serif);font-weight:400;font-size:21px;margin:0 0 4px;line-height:1.2}
+.card p{margin:0;font-size:13.5px;line-height:1.6;color:#C2C8C4}
+.card .why{margin-top:7px;font-size:13px;color:var(--dust);line-height:1.55}
+.cut{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--line-soft)}
+.cut:last-child{border-bottom:0}
+.cutmark{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--burn);flex:none;padding-top:3px;width:34px}
+.cutmark.add{color:var(--exposed)}
+.cut h4{margin:0 0 3px;font-family:var(--serif);font-weight:400;font-size:17.5px;line-height:1.2}
+.cut p{margin:0;font-size:12.5px;color:var(--dust);line-height:1.5}
+.btn{display:block;width:100%;padding:14px;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--surface);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--bone);margin-bottom:9px;text-align:center}
+.btn:active{background:var(--surface-2)}
+.btn.danger{color:var(--burn);border-color:rgba(210,85,47,.35)}
+.hint{font-size:12.5px;color:var(--dust-dim);line-height:1.55;margin:0 0 14px}
+
+/* ---------- tab bar ---------- */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:12;max-width:560px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:rgba(15,20,19,.93);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+.tab{height:var(--tabbar);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust-dim);
+  transition:color .2s}
+.tab .ic{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--leader)}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(var(--tabbar) + var(--safe-b) + 18px);transform:translate(-50%,16px);
+  z-index:30;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:10px 18px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--bone);
+  opacity:0;pointer-events:none;transition:all .28s var(--ease);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+.footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line-soft);
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dust-dim);text-align:center;line-height:1.9}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== JOURNEY ===================== -->
+  <section class="screen on" id="s-journey">
+    <header class="top">
+      <div class="brandrow">
+        <div class="brand">The <em>Long Take</em></div>
+        <div class="brandmeta" id="hdrCount">00 / 30</div>
+      </div>
+      <div class="strip">
+        <div class="perf"></div>
+        <div class="cells" id="cells"></div>
+        <div class="perf"></div>
+        <div class="striplabel">
+          <span><b id="litCount">0</b> frames exposed</span>
+          <span id="hoursLabel">0h in the dark</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="eyebrow">Next in sequence</div>
+    <button class="tonight" id="tonight"></button>
+    <button class="shuffle" id="shuffleBtn">Not tonight — show me another</button>
+
+    <div id="chapters"></div>
+
+    <div class="footer">
+      Thirty films · Nine chapters<br>Everything stays on this device
+    </div>
+  </section>
+
+  <!-- ===================== LOG ===================== -->
+  <section class="screen" id="s-log">
+    <header class="top">
+      <div class="brandrow">
+        <div class="brand">The <em>Log</em></div>
+        <div class="brandmeta" id="logCount">0 entries</div>
+      </div>
+    </header>
+    <p class="hint" id="logIntro"></p>
+    <div id="logList"></div>
+    <div class="footer">Newest first</div>
+  </section>
+
+  <!-- ===================== STATS ===================== -->
+  <section class="screen" id="s-stats">
+    <header class="top">
+      <div class="brandrow">
+        <div class="brand">The <em>Ledger</em></div>
+        <div class="brandmeta">Where you stand</div>
+      </div>
+    </header>
+
+    <div class="eyebrow">Progress</div>
+    <div class="bignum" id="statBig">0<small> / 30</small></div>
+    <div class="statgrid">
+      <div class="statbox"><div class="k">Hours watched</div><div class="v" id="statHours">0h</div></div>
+      <div class="statbox"><div class="k">Your average</div><div class="v" id="statAvg">—</div></div>
+      <div class="statbox"><div class="k">Notes written</div><div class="v" id="statNotes">0</div></div>
+      <div class="statbox"><div class="k">Last watched</div><div class="v" id="statLast">—</div></div>
+    </div>
+
+    <div class="eyebrow">By chapter</div>
+    <div id="chapBars"></div>
+
+    <div class="eyebrow">Life areas you've covered</div>
+    <p class="hint" id="areaHint"></p>
+    <div id="areaBars"></div>
+
+    <div class="eyebrow">How you've rated them</div>
+    <div id="rateBars"></div>
+
+    <div class="eyebrow">Still unopened</div>
+    <div class="card" id="unopened"></div>
+
+    <div class="footer">Counts update as you log</div>
+  </section>
+
+  <!-- ===================== MORE ===================== -->
+  <section class="screen" id="s-more">
+    <header class="top">
+      <div class="brandrow">
+        <div class="brand">The <em>Margins</em></div>
+        <div class="brandmeta">Notes & data</div>
+      </div>
+    </header>
+
+    <div class="eyebrow">How to use this</div>
+    <div class="card">
+      <h3>Log it while the credits roll</h3>
+      <p>The useful reaction lasts about ten minutes after a film ends. Open the film, tap <em>Watched</em>, tap a rating, and write two lines. That's the whole ritual — under two minutes.</p>
+      <p class="why">The chapters are a sequence, not a ranking. Each one sets up the next. But if a chapter isn't where your head is right now, skip it and come back — the order is a suggestion, not a rule.</p>
+    </div>
+
+    <div class="eyebrow">Where this list differs</div>
+    <p class="hint">Six films from the original list were dropped and seven added. The reasoning, so you can disagree with it:</p>
+    <div class="card" id="editorial"></div>
+
+    <div class="eyebrow">The bench</div>
+    <p class="hint">Strong films that didn't make the thirty. Swap them in when a chapter doesn't land for you.</p>
+    <div class="card" id="bench"></div>
+
+    <div class="eyebrow">Your data</div>
+    <p class="hint">Everything lives in this browser's local storage — nothing is uploaded anywhere. Clearing site data wipes it, so export a backup once in a while.</p>
+    <button class="btn" id="expJson">Export backup (.json)</button>
+    <button class="btn" id="expMd">Export notes (.md)</button>
+    <button class="btn" id="impBtn">Import a backup</button>
+    <input type="file" id="impFile" accept=".json,application/json" hidden>
+    <button class="btn danger" id="resetBtn">Erase everything</button>
+
+    <div class="footer">The Long Take · v1<br>Built to be kept, not shared</div>
+  </section>
+</div>
+
+<!-- ===================== SHEET ===================== -->
+<div class="veil" id="veil"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <div class="sheetscroll" id="sheetScroll"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===================== TABS ===================== -->
+<nav class="tabs">
+  <button class="tab on" data-go="journey">
+    <svg class="ic" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M6 5v14M18 5v14M2.5 9.5h3.5M2.5 14.5h3.5M18 9.5h3.5M18 14.5h3.5"/></svg>
+    Journey
+  </button>
+  <button class="tab" data-go="log">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M5 3.5h14v17l-7-3.5-7 3.5z"/><path d="M9 8h6M9 11.5h4"/></svg>
+    Log
+  </button>
+  <button class="tab" data-go="stats">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+    Ledger
+  </button>
+  <button class="tab" data-go="more">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5M12 8.2v.1"/></svg>
+    Margins
+  </button>
+</nav>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const CHAPTERS = [
+  {n:"I",   title:"Whose life is this?",                        goal:"Separate what you chose from what you absorbed."},
+  {n:"II",  title:"What am I chasing, and what will it cost?",  goal:"Ambition is fine. Unpriced ambition isn't."},
+  {n:"III", title:"When is enough, enough?",                    goal:"Improve your life without postponing living it."},
+  {n:"IV",  title:"Time is the only real currency",             goal:"Thirty years is a finite pile of ordinary days."},
+  {n:"V",   title:"Love, as it actually works",                 goal:"Not the beginning of it. The middle."},
+  {n:"VI",  title:"The people you inherit, the people you keep",goal:"Parents, children, friends: all on a clock."},
+  {n:"VII", title:"When the plan breaks",                       goal:"Who you are when outcomes stop cooperating."},
+  {n:"VIII",title:"How do I know what I think is true?",        goal:"Everyone has an opinion about your life. Learn to audit."},
+  {n:"IX",  title:"Knowing it ends",                            goal:"The last question, asked deliberately once."}
+];
+
+const FILMS = [
+/* ---- I ---- */
+{id:"truman",ch:0,t:"The Truman Show",y:1998,d:"Peter Weir",c:"US",lang:"English",run:103,w:5,
+ areas:["Identity","Thinking clearly"],
+ hook:"The life you never questioned was designed by someone else.",
+ why:"At 27 the default script stops being theoretical: job, marriage, house, EMI, promotion, repeat. None of it is wrong. What's dangerous is reaching 45 having never once asked why you picked it. Truman's world isn't a prison because it's bad. It's a prison because he didn't choose it.",
+ q:"Which parts of my life did I actually choose, and which did I inherit?"},
+
+{id:"tamasha",ch:0,t:"Tamasha",y:2015,d:"Imtiaz Ali",c:"IN",lang:"Hindi",run:139,w:5,
+ areas:["Identity","Work & ambition"],
+ hook:"You can become extremely good at a life you don't want.",
+ why:"The Indian edition of the same problem, and it cuts deeper because the pressure here is affectionate rather than cruel. Nobody in your life is the villain, which is precisely what makes pushing back so hard. The film is overwritten in places. Watch it for the diagnosis, not the resolution.",
+ q:"If nobody would be disappointed in me, what would I pick?",
+ note:"This is not a quit-your-job film. The distinction that matters is responsibility versus conformity."},
+
+{id:"groundhog",ch:0,t:"Groundhog Day",y:1993,d:"Harold Ramis",c:"US",lang:"English",run:101,w:5,
+ areas:["Identity","Presence & the everyday"],
+ hook:"You are the only variable you actually control.",
+ why:"Phil tries pleasure, manipulation, despair and escape before he tries becoming a better person, which is roughly the order most people try things in. The least pretentious film ever made about self-work, and it's disguised as a comedy so it goes down easy.",
+ q:"If my circumstances stayed identical for a year, what would I change about me?"},
+
+/* ---- II ---- */
+{id:"gwh",ch:1,t:"Good Will Hunting",y:1997,d:"Gus Van Sant",c:"US",lang:"English",run:126,w:5,
+ areas:["Work & ambition","Identity"],
+ hook:"Potential is not an achievement.",
+ why:"Will's problem was never intelligence. Somewhere around 27, 'promising' quietly stops being a compliment. The raw ability has to convert into decisions other people can see, and the thing blocking that is usually fear wearing the costume of high standards.",
+ q:"Where am I hiding behind preparation, cleverness or 'not ready yet'?"},
+
+{id:"whiplash",ch:1,t:"Whiplash",y:2014,d:"Damien Chazelle",c:"US",lang:"English",run:106,w:5,
+ areas:["Work & ambition","Failure & loss"],
+ hook:"Obsession works. That's the problem.",
+ why:"Most films about ambition either glorify it or condemn it. This one shows you the trade at full price: the pressure did produce the performance, it did cost him everything else, and the film refuses to tell you whether that was a good deal. Added by me. If you're chasing a bigger title this year, watch it before you decide how much of yourself to spend.",
+ q:"What am I trading for this, and did I ever actually agree to that trade?",
+ note:"The ending is deliberately unresolved. Sit with that instead of picking a side."},
+
+{id:"tsn",ch:1,t:"The Social Network",y:2010,d:"David Fincher",c:"US",lang:"English",run:120,w:4,
+ areas:["Work & ambition","Friendship"],
+ hook:"Building something enormous and ending up alone are not opposites.",
+ why:"Added by me in place of Fight Club. This is competence as armour, which is the engineer's specific failure mode: being right starts substituting for being decent, and it works for years before the bill arrives. The last shot is the most accurate image of that bill I know of.",
+ q:"Who am I quietly treating as an obstacle right now?"},
+
+{id:"soul",ch:1,t:"Soul",y:2020,d:"Pete Docter",c:"US",lang:"English",run:100,w:5,
+ areas:["Work & ambition","Meaning & faith"],
+ hook:"'Finding your purpose' may be the wrong project entirely.",
+ why:"For anyone convinced they have a purpose problem. The argument is that a career is not a soul and a passion is not a whole life, and it makes that case without being smug. Watch it right after Whiplash on purpose. The two films disagree with each other, and the argument between them is the useful part.",
+ q:"If I got everything I currently want professionally, what would be left?",
+ pair:"Whiplash"},
+
+/* ---- III ---- */
+{id:"perfectdays",ch:2,t:"Perfect Days",y:2023,d:"Wim Wenders",c:"JP",lang:"Japanese",run:124,w:5,
+ areas:["Money & enough","Presence & the everyday"],
+ hook:"A good life does not have to look impressive.",
+ why:"A man cleans public toilets in Tokyo and the film flatly refuses to treat that as a tragedy. This is the strongest antidote here to the 10L to 20L to 30L to bigger house to better car treadmill. It isn't an argument against ambition. It's an argument against making happiness conditional on the next rung.",
+ q:"Can I keep improving my life without postponing being happy inside it?",
+ note:"Almost no plot. Let it be slow. The slowness is the method."},
+
+{id:"eeaao",ch:2,t:"Everything Everywhere All at Once",y:2022,d:"Daniels",c:"US",lang:"English",run:139,w:5,
+ areas:["Money & enough","Meaning & faith"],
+ hook:"Infinite alternatives make your actual life feel like a mistake.",
+ why:"The most accurate film about the specific damage of comparison culture. You scroll, you see other people's salaries, weddings, bodies, trips, and you run the counterfactual on your own life. The film takes nihilism seriously first, which is why its answer lands instead of feeling cheap.",
+ q:"How do I decide that the life I actually have is the one worth living?"},
+
+{id:"swades",ch:2,t:"Swades",y:2004,d:"Ashutosh Gowariker",c:"IN",lang:"Hindi",run:189,w:4,
+ areas:["Work & ambition","Meaning & faith"],
+ hook:"Success for what?",
+ why:"At 22 the question is how much can I earn. At 27 it starts turning into what am I building. Swades is where that turn begins, not by telling you to sacrifice a career but by asking what the career is in service of. It is long and a little preachy in the back half. The core question survives that.",
+ q:"My work makes money. What else is it for?",
+ note:"189 minutes. Book a weekend afternoon, not a weeknight."},
+
+/* ---- IV ---- */
+{id:"ikiru",ch:3,t:"Ikiru",y:1952,d:"Akira Kurosawa",c:"JP",lang:"Japanese",run:143,w:5,
+ areas:["Time & mortality","Meaning & faith"],
+ hook:"You can be alive for decades without living.",
+ why:"If you only ever watch one film from this list, this is the one. Watanabe's realisation is not that he'll die, he always knew that. It's that he stopped living roughly thirty years ago and nobody mentioned it. The lesson is worth far more at 27 than at 57, for the obvious reason: you still have the thirty years.",
+ q:"If I lived exactly like this for thirty more years, would I respect who I became?",
+ note:"Watch it alone. Then rewatch it after the last film on this list. It will not be the same film."},
+
+{id:"abouttime",ch:3,t:"About Time",y:2013,d:"Richard Curtis",c:"UK",lang:"English",run:123,w:5,
+ areas:["Time & mortality","Presence & the everyday"],
+ hook:"You are badly underestimating an ordinary Tuesday.",
+ why:"The deliberate counterweight to Ikiru. Ikiru says wake up before it's over. About Time says the thing you keep waiting to start has already been happening. It's sentimental and occasionally too neat, and it is completely right about the one thing that matters.",
+ q:"If today repeated forever, would I actually want to live it?",
+ pair:"Ikiru"},
+
+{id:"interstellar",ch:3,t:"Interstellar",y:2014,d:"Christopher Nolan",c:"US",lang:"English",run:169,w:4,
+ areas:["Time & mortality","Children & parenting"],
+ hook:"Thirty years is not an abstraction.",
+ why:"Skip the physics debate. The scene that stays is the one where he watches the messages. Your parents are ageing at a fixed rate right now, so are you, and the film converts that from a vague fact into arithmetic you can feel.",
+ q:"Who am I planning to spend time with 'later'?"},
+
+/* ---- V ---- */
+{id:"lunchbox",ch:4,t:"The Lunchbox",y:2013,d:"Ritesh Batra",c:"IN",lang:"Hindi",run:104,w:5,
+ areas:["Love & partnership","Presence & the everyday"],
+ hook:"A shared life can quietly turn into logistics.",
+ why:"Two lonely people, one misdelivered dabba, and nothing spectacular happens, which is exactly the point. This is what a relationship looks like when the responsibility is fully intact and the presence has gone missing. The most useful Indian film here for anyone whose home life is becoming bills, chores and schedules.",
+ q:"Am I giving my closest person attention, or only reliability?"},
+
+{id:"before",ch:4,t:"The Before Trilogy",y:1995,ydisp:"1995\u20132013",d:"Richard Linklater",c:"US",lang:"English",run:290,w:5,
+ areas:["Love & partnership","Time & mortality"],
+ hook:"Watch one relationship age eighteen years across three sittings.",
+ why:"Added by me, and I'd defend it hard. Sunrise is 23 and infatuated. Sunset is 32 and full of quiet regret. Midnight is 41, tired, and the most honest film about long partnership ever made. Watching them in order does something no single film can: it shows you the same love at three different prices.",
+ q:"What will this relationship need from me in ten years that it doesn't need today?",
+ note:"Three films: Sunrise (1995), Sunset (2004), Midnight (2013). In order, ideally across three weekends."},
+
+{id:"eternal",ch:4,t:"Eternal Sunshine of the Spotless Mind",y:2004,d:"Michel Gondry",c:"US",lang:"English",run:108,w:5,
+ areas:["Love & partnership","Failure & loss"],
+ hook:"Pain doesn't make an experience worthless.",
+ why:"Would you delete a relationship if the technology existed? The film takes the question seriously rather than sentimentally, and its answer is genuinely complicated. Useful at 27 because adult life keeps teaching the thing school never did: not everything that ended was a failure.",
+ q:"Would I erase the worst of it if it also erased who it made me?"},
+
+{id:"marriagestory",ch:4,t:"Marriage Story",y:2019,d:"Noah Baumbach",c:"US",lang:"English",run:137,w:4,
+ areas:["Love & partnership","Failure & loss"],
+ hook:"Loving each other and being able to live together are different skills.",
+ why:"Not an anti-marriage film. It's about how resentment compounds, how communication decays by small increments, and how two decent people can do real damage without either becoming a villain. Watch it when things are steady.",
+ q:"What have I stopped saying out loud, and how long has it been accumulating?",
+ note:"Heavy. Don't pick this one on a low evening or during a rough patch."},
+
+{id:"her",ch:4,t:"Her",y:2013,d:"Spike Jonze",c:"US",lang:"English",run:126,w:4,
+ areas:["Love & partnership","Identity"],
+ hook:"More connection, more loneliness.",
+ why:"Less about AI than about what we actually want from another person, and how appealing intimacy becomes once you can get it without friction. For your generation that stopped being a thought experiment and became a product category, which makes the film harder to watch now than in 2013.",
+ q:"What do I need from another person that no amount of convenience can replace?"},
+
+/* ---- VI ---- */
+{id:"tokyostory",ch:5,t:"Tokyo Story",y:1953,d:"Yasujiro Ozu",c:"JP",lang:"Japanese",run:136,w:5,
+ areas:["Parents & ageing","Presence & the everyday"],
+ hook:"Your parents can get lonely while you're busy being responsible.",
+ why:"The children here are not cruel. They're busy. They have jobs, families and genuine constraints, and that turns out to be entirely sufficient to leave two old people sitting alone. This is the one I would most want you to watch this year, because that relationship is changing right now whether you've noticed it or not.",
+ q:"Am I giving my parents time, or only money and duty?",
+ note:"Slow by design. It earns the last twenty minutes completely."},
+
+{id:"likefather",ch:5,t:"Like Father, Like Son",y:2013,d:"Hirokazu Kore-eda",c:"JP",lang:"Japanese",run:121,w:5,
+ areas:["Children & parenting","Work & ambition"],
+ hook:"What actually makes you someone's parent?",
+ why:"Added by me. A workaholic father learns his son was swapped at birth. The film is quietly brutal about a man who assumed providing was the same as showing up. If children are anywhere on your horizon, watch this beforehand rather than afterwards.",
+ q:"Would my child describe me as present, or as provided for?",
+ pair:"Tokyo Story"},
+
+{id:"anand",ch:5,t:"Anand",y:1971,d:"Hrishikesh Mukherjee",c:"IN",lang:"Hindi",run:122,w:5,
+ areas:["Time & mortality","Friendship"],
+ hook:"How do you behave when you know the time is short?",
+ why:"Don't file this under old Hindi weepie. Ikiru asks what will you accomplish. Anand asks what kind of person you'll be around other people while you do it. Those are different questions and you need both answered.",
+ q:"What am I actually like to be around?",
+ pair:"Ikiru"},
+
+{id:"dch",ch:5,t:"Dil Chahta Hai",y:2001,d:"Farhan Akhtar",c:"IN",lang:"Hindi",run:183,w:4,
+ areas:["Friendship","Identity"],
+ hook:"Adult friendships dissolve quietly and nobody warns you.",
+ why:"Added by me, because nothing on the original list covered the thing that actually happens after 25. Your friendships don't end in a fight. They end in 'let's plan something soon' repeated for four years. This is the only film here that treats friendship as something requiring active maintenance rather than something that just exists.",
+ q:"Which friendship am I letting expire by default?"},
+
+/* ---- VII ---- */
+{id:"masaan",ch:6,t:"Masaan",y:2015,d:"Neeraj Ghaywan",c:"IN",lang:"Hindi",run:109,w:5,
+ areas:["Failure & loss","Identity"],
+ hook:"A mistake can be part of your story without becoming your identity.",
+ why:"Shame, caste, grief and small-town surveillance, and two people trying to keep living inside all of it. This replaces the usual never-give-up film because it doesn't promise the world becomes fair. It just shows you what continuing looks like, which is more useful.",
+ q:"Who do I become when it doesn't go to plan and nobody is watching?"},
+
+{id:"soundofmetal",ch:6,t:"Sound of Metal",y:2019,d:"Darius Marder",c:"US",lang:"English",run:120,w:5,
+ areas:["Failure & loss","Identity"],
+ hook:"What is left of you when you lose the thing you're good at?",
+ why:"Added by me, and for you specifically. A drummer loses his hearing. If your identity is fused to a skill, and as an engineer yours partly is, this is the most uncomfortable and most useful film on the list. The last scene achieves acceptance without lying about how much it cost.",
+ q:"If I couldn't do the thing I'm known for, who would I be?",
+ note:"Headphones, not the phone speaker. The sound design is the entire argument."},
+
+{id:"thefather",ch:6,t:"The Father",y:2020,d:"Florian Zeller",c:"UK",lang:"English",run:97,w:5,
+ areas:["Parents & ageing","Time & mortality"],
+ hook:"Dementia from the inside, not from the visitor's chair.",
+ why:"The structure puts you inside a mind losing its grip on sequence, so you get disoriented because he is. At 27 ageing feels abstract. It will not stay abstract. This film earns its slot by making you feel the fear of dependence rather than describing it to you.",
+ q:"How do I want to treat the people I love when they need me completely?",
+ note:"Genuinely distressing. Choose the evening carefully."},
+
+/* ---- VIII ---- */
+{id:"12angry",ch:7,t:"12 Angry Men",y:1957,d:"Sidney Lumet",c:"US",lang:"English",run:96,w:5,
+ areas:["Thinking clearly"],
+ hook:"Confidence and certainty are not the same thing.",
+ why:"The cleanest demonstration ever filmed of the gap between what you believe and what you can actually show. Adult life is a queue of people with strong opinions about your career, money, marriage and timeline. The skill this teaches is asking 'wait, what do we actually know' without being insufferable about it.",
+ q:"What do I currently believe strongly that I have never once checked?"},
+
+{id:"aseparation",ch:7,t:"A Separation",y:2011,d:"Asghar Farhadi",c:"IR",lang:"Persian",run:123,w:5,
+ areas:["Thinking clearly","Parents & ageing"],
+ hook:"Everyone is telling the truth. Everyone is also lying.",
+ why:"Added by me and one of the strongest additions. A marriage, a father with dementia, a class divide, and one incident that every person remembers slightly differently. No villain, no clean answer, and it never once tells you whose side to take. This is what real moral reasoning feels like, as opposed to the tidy version films usually sell.",
+ q:"In my last real conflict, what did my behaviour look like from inside their head?",
+ pair:"12 Angry Men"},
+
+{id:"stalker",ch:7,t:"Stalker",y:1979,d:"Andrei Tarkovsky",c:"SU",lang:"Russian",run:162,w:4,
+ areas:["Thinking clearly","Identity"],
+ hook:"You may not actually know what you want.",
+ why:"Three men walk toward a room that grants your deepest wish, and the reason nobody will step inside is that it grants the real one, not the one you'd say out loud. Hard mode, and I'm keeping it anyway, because the decisions you make between 27 and 35 are exactly the ones that need this question asked first.",
+ q:"What would the room actually give me, and would I be embarrassed by it?",
+ note:"Hard mode: 162 minutes, glacial. A free evening, no phone, or don't start it."},
+
+/* ---- IX ---- */
+{id:"arrival",ch:8,t:"Arrival",y:2016,d:"Denis Villeneuve",c:"US",lang:"English",run:116,w:5,
+ areas:["Time & mortality","Love & partnership"],
+ hook:"Would you still choose it if you knew exactly how it ends?",
+ why:"The single best question on this list, and it generalises to everything: marriage, children, parents, friendship, the life itself. Everything you love is temporary. The film's argument is that this is not an argument against loving it.",
+ q:"Knowing it ends, do I choose it anyway?"},
+
+{id:"seventhseal",ch:8,t:"The Seventh Seal",y:1957,d:"Ingmar Bergman",c:"SE",lang:"Swedish",run:96,w:4,
+ areas:["Meaning & faith","Time & mortality"],
+ hook:"How do you live without knowing what comes after?",
+ why:"Last, because it asks the largest question and then refuses to answer it. You don't need to share Bergman's worldview to benefit. The value is confronting the question deliberately once, at 27, rather than avoiding it for forty years and then meeting it unprepared.",
+ q:"What do I actually believe about death, as opposed to what I was taught?",
+ note:"Finish here, then go back and rewatch Ikiru. That's the intended ending of this list."}
+];
+
+const EDITORIAL = [
+ {k:"cut",t:"Fight Club",p:"The critique gets swallowed by the style. Most people walk out quoting it rather than questioning themselves. The Social Network makes the same point about what ambition costs, without the fan club."},
+ {k:"cut",t:"The Wolf of Wall Street",p:"Three hours to land one idea that Fight Club had already landed. Keeping both was redundant, so I kept neither."},
+ {k:"cut",t:"The Matrix",p:"The Truman Show already owns 'your reality was built for you', and does it inside a life you could plausibly be living. The philosophy here is thinner than the reputation."},
+ {k:"cut",t:"The Shawshank Redemption",p:"You have almost certainly seen it. The lesson is real but simple, and Masaan does the same work with more ambiguity and more relevance to where you actually live."},
+ {k:"cut",t:"Forrest Gump",p:"The randomness lesson is genuine, but it arrives wrapped in enough sentiment that most people finish it feeling good rather than thinking."},
+ {k:"cut",t:"The Secret Life of Walter Mitty",p:"Lovely to look at, thin underneath. Perfect Days and About Time both handle 'stop postponing your life' with far more weight."},
+ {k:"add",t:"Whiplash",p:"The original list had nothing that priced ambition honestly. This does, and refuses to tell you whether the price was worth paying."},
+ {k:"add",t:"The Social Network",p:"Competence as armour. The specific way technically brilliant people fail at being decent, which matters more to you than a soap factory."},
+ {k:"add",t:"The Before Trilogy",p:"Marriage Story shows a relationship ending. Nothing showed one surviving and changing. These three do, across eighteen years."},
+ {k:"add",t:"Like Father, Like Son",p:"Tokyo Story is about being a child to ageing parents. This is about being the parent, and about confusing providing with showing up."},
+ {k:"add",t:"A Separation",p:"12 Angry Men teaches you to weigh evidence. This one shows you a conflict where the evidence genuinely doesn't resolve, which is the more common case."},
+ {k:"add",t:"Dil Chahta Hai",p:"Adult friendship was completely missing. After 25 it decays by default, and nothing else here says so."},
+ {k:"add",t:"Sound of Metal",p:"Nothing on the list asked what happens when the skill your identity rests on is taken away. For an engineer that's not a hypothetical."}
+];
+
+const BENCH = [
+ {t:"Blade Runner 2049",y:2017,p:"Strong, but it overlaps Her and Sound of Metal on identity, and 164 minutes is a lot for the marginal idea."},
+ {t:"Past Lives",y:2023,p:"The road not taken, handled gently. Pairs with Eternal Sunshine."},
+ {t:"Aftersun",y:2022,p:"Understanding your parent as a person, about twenty years too late."},
+ {t:"Paterson",y:2016,p:"The quiet twin of Perfect Days. Pick whichever chapter three didn't satisfy."},
+ {t:"Manchester by the Sea",y:2016,p:"Grief you don't recover from, only carry. Chapter seven, hard mode."},
+ {t:"Court",y:2014,p:"How Indian institutions grind ordinary people down through sheer procedure."},
+ {t:"After Life",y:1998,p:"Kore-eda: you may take one memory into eternity. Choose. Devastating premise."},
+ {t:"Departures",y:2008,p:"Death as a day job, and finding dignity in work nobody respects."},
+ {t:"Nomadland",y:2020,p:"Work, loss and living outside the settled life you're currently building."},
+ {t:"The Big Short",y:2015,p:"Not a life film, but you think about money seriously, and it teaches healthy suspicion."}
+];
+
+/* ============================================================
+   STORE
+   ============================================================ */
+const KEY = "longtake.v1";
+let DB = {entries:{}, created:new Date().toISOString()};
+try{ const raw = localStorage.getItem(KEY); if(raw) DB = Object.assign(DB, JSON.parse(raw)); }
+catch(e){ console.warn("Could not read saved data", e); }
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){ toast("Storage is full or blocked"); } };
+function E(id){
+  const d = {watched:false,date:"",rating:0,learnt:"",answer:"",tags:[]};
+  const cur = DB.entries[id];
+  if(!cur){ DB.entries[id] = d; return d; }
+  if(!Array.isArray(cur.tags)) cur.tags = [];
+  ["date","learnt","answer"].forEach(k=>{ if(typeof cur[k]!=="string") cur[k]=""; });
+  cur.rating = +cur.rating || 0;
+  cur.watched = !!cur.watched;
+  return cur;
+}
+const has = id => !!(DB.entries[id] && DB.entries[id].watched);
+
+/* ---------- helpers ---------- */
+const $  = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,"0");
+const esc = s => String(s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today = () => new Date().toISOString().slice(0,12);
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(iso){ if(!iso) return ""; const d=new Date(iso+"T00:00:00"); if(isNaN(d)) return iso;
+  return d.getDate()+" "+MON[d.getMonth()]+" "+d.getFullYear(); }
+function hhmm(min){ const h=Math.floor(min/60), m=min%60; return h? h+"h"+(m?" "+m+"m":"") : m+"m"; }
+function starStr(n){ let s=""; for(let i=1;i<=5;i++) s += i<=n ? "&#9733;" : '<span class="off">&#9733;</span>'; return s; }
+const RATE_LABEL = ["","Didn't land for me","Fine, moved on","Worth the evening","Stayed with me for days","Changed something"];
+const PLACE = {US:"United States",IN:"India",JP:"Japan",UK:"United Kingdom",
+  IR:"Iran",SU:"Soviet Union",SE:"Sweden"};
+const TAGS = ["Shook me","Made me grateful","Uncomfortable","Overrated for me","Want to rewatch","Told someone about it"];
+
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200); }
+
+/* ============================================================
+   FILMSTRIP + JOURNEY
+   ============================================================ */
+function renderStrip(animate){
+  const wrap = $("#cells"); wrap.innerHTML = "";
+  const nextIdx = FILMS.findIndex(f => !has(f.id));
+  FILMS.forEach((f,i)=>{
+    const d = document.createElement("div");
+    d.className = "cell" + (has(f.id) ? " lit" : (i===nextIdx ? " now" : ""));
+    d.title = pad(i+1)+" "+f.t;
+    if(animate){ d.classList.add("enter"); d.style.animationDelay = (i*17)+"ms"; }
+    wrap.appendChild(d);
+  });
+  const done = FILMS.filter(f=>has(f.id)).length;
+  const mins = FILMS.filter(f=>has(f.id)).reduce((a,f)=>a+f.run,0);
+  $("#hdrCount").textContent = pad(done)+" / 30";
+  $("#litCount").textContent = done;
+  $("#hoursLabel").textContent = mins ? hhmm(mins)+" in the dark" : "nothing logged yet";
+}
+
+let tonightId = null;
+function renderTonight(pick){
+  const un = FILMS.filter(f=>!has(f.id));
+  const el = $("#tonight");
+  if(!un.length){
+    tonightId = "ikiru";
+    el.innerHTML = '<div class="num">THE SECOND PASS</div><h3>Ikiru</h3>'+
+      '<div class="facts">Kurosawa &middot; 1952 &middot; 143&prime;</div>'+
+      '<div class="qline">All thirty are logged. Watch this one again &mdash; you are not the person who watched it the first time.</div>'+
+      '<div class="cta">Open the film &rarr;</div>';
+    $("#shuffleBtn").style.display = "none";
+    return;
+  }
+  const f = pick || un[0];
+  tonightId = f.id;
+  const i = FILMS.indexOf(f);
+  el.innerHTML =
+    '<div class="num">'+(pick && pick!==un[0] ? "AN ALTERNATIVE" : "FILM "+pad(i+1))+' &middot; CHAPTER '+CHAPTERS[f.ch].n+'</div>'+
+    '<h3>'+esc(f.t)+'</h3>'+
+    '<div class="facts">'+esc(f.d)+' &middot; '+esc(f.ydisp||f.y)+' &middot; '+f.run+'&prime; &middot; '+esc(f.lang)+'</div>'+
+    '<div class="qline">'+esc(f.q)+'</div>'+
+    '<div class="cta">Open the film &rarr;</div>';
+  $("#shuffleBtn").style.display = un.length>1 ? "block" : "none";
+}
+
+function renderChapters(){
+  const root = $("#chapters"); root.innerHTML = "";
+  CHAPTERS.forEach((c,ci)=>{
+    const list = FILMS.filter(f=>f.ch===ci);
+    const done = list.filter(f=>has(f.id)).length;
+    const sec = document.createElement("div");
+    sec.className = "chapter";
+    sec.innerHTML =
+      '<div class="chead">'+
+        '<div class="croman">'+c.n+'</div>'+
+        '<div class="ctitle"><h2>'+esc(c.title)+'</h2><p>'+esc(c.goal)+'</p></div>'+
+        '<div class="cprog'+(done===list.length?" done":"")+'">'+done+'/'+list.length+'</div>'+
+      '</div>';
+    list.forEach(f=>{
+      const i = FILMS.indexOf(f), e = DB.entries[f.id], seen = has(f.id);
+      const b = document.createElement("button");
+      b.className = "film" + (seen ? " seen" : "");
+      b.dataset.id = f.id;
+      let meta = "";
+      if(seen){
+        if(e.rating) meta += '<span class="stars">'+starStr(e.rating)+'</span>';
+        if(e.date)   meta += '<span class="seendate">'+fmtDate(e.date)+'</span>';
+        if(e.learnt && e.learnt.trim()) meta += '<span class="tagdot">&#9679; noted</span>';
+      }
+      b.innerHTML =
+        '<div class="mark">'+(seen ? "&#10003;" : pad(i+1))+'</div>'+
+        '<div class="fbody">'+
+          '<div class="ftitle">'+esc(f.t)+(f.w===5 && !seen ? ' <span class="flag">Core</span>' : '')+'</div>'+
+          '<div class="ffacts">'+esc(f.d)+' &middot; '+esc(f.ydisp||f.y)+' &middot; '+f.run+'&prime;</div>'+
+          (seen ? '' : '<div class="fq">'+esc(f.hook)+'</div>')+
+          (meta ? '<div class="fmeta">'+meta+'</div>' : '')+
+        '</div>';
+      sec.appendChild(b);
+    });
+    root.appendChild(sec);
+  });
+}
+
+/* ============================================================
+   SHEET
+   ============================================================ */
+let openId = null, saveT, dirty = false;
+function openFilm(id){
+  const f = FILMS.find(x=>x.id===id); if(!f) return;
+  openId = id;
+  const i = FILMS.indexOf(f), e = E(id), c = CHAPTERS[f.ch];
+  $("#sheetScroll").innerHTML =
+    '<div class="sheethead"><div class="sheetnum">'+pad(i+1)+'</div>'+
+      '<button class="closebtn" id="closeSheet">Close</button></div>'+
+    '<h1 id="sheetTitle">'+esc(f.t)+'</h1>'+
+    '<div class="sheetfacts">'+esc(f.d)+' &middot; '+esc(f.ydisp||f.y)+' &middot; '+esc(PLACE[f.c]||f.c)+'<br>'+
+      esc(f.lang)+' &middot; '+f.run+' min &middot; Chapter '+c.n+', '+esc(c.title)+'</div>'+
+    '<div class="hook">'+esc(f.hook)+'</div>'+
+    '<div class="blk"><h4>Why this one, now</h4><p>'+esc(f.why)+'</p></div>'+
+    '<div class="qbox"><h4>Sit with this afterwards</h4><p>'+esc(f.q)+'</p></div>'+
+    (f.note ? '<div class="note"><span>&#9656;</span><div>'+esc(f.note)+'</div></div>' : '')+
+    (f.pair ? '<div class="note"><span>&#8646;</span><div>Pairs with <b>'+esc(f.pair)+'</b>. Watch them close together.</div></div>' : '')+
+    '<div class="blk"><h4>Life areas</h4><p style="font-family:var(--mono);font-size:12.5px;color:var(--dust)">'+f.areas.map(esc).join("  &middot;  ")+'</p></div>'+
+
+    '<div class="yours">'+
+      '<div class="yourshead"><h4>Your log</h4><span class="saved" id="savedFlag">Saved</span></div>'+
+      '<button class="watchbtn'+(e.watched?" on":"")+'" id="watchBtn">'+(e.watched?"&#10003; Watched":"Mark as watched")+'</button>'+
+      '<div class="daterow" id="dateRow" style="display:'+(e.watched?"flex":"none")+'">'+
+        '<label for="dateIn">On</label><input type="date" id="dateIn" value="'+(e.date||today())+'">'+
+      '</div>'+
+      '<div class="starpick" id="starPick">'+
+        [1,2,3,4,5].map(n=>'<button class="starbtn'+(e.rating>=n?" on":"")+'" data-n="'+n+'">&#9733;</button>').join("")+
+      '</div>'+
+      '<div class="ratehint" id="rateHint">'+(e.rating?RATE_LABEL[e.rating]:"")+'</div>'+
+      '<div class="field"><label for="learntIn">What it did to me</label>'+
+        '<textarea id="learntIn" placeholder="Two lines is enough. What landed, what you disagreed with, what you kept thinking about on the way to bed.">'+esc(e.learnt)+'</textarea></div>'+
+      '<div class="field"><label for="answerIn">My answer to the question</label>'+
+        '<textarea id="answerIn" placeholder="'+esc(f.q)+'">'+esc(e.answer)+'</textarea></div>'+
+      '<div class="field"><label>How it left me</label><div class="chips" id="chipRow">'+
+        TAGS.map(t=>'<button class="chip'+(e.tags.includes(t)?" on":"")+'" data-t="'+esc(t)+'">'+esc(t)+'</button>').join("")+
+      '</div></div>'+
+    '</div>';
+
+  $("#sheet").classList.add("on");
+  $("#veil").classList.add("on");
+  document.body.style.overflow = "hidden";
+  $("#sheetScroll").scrollTop = 0;
+  bindSheet(f, e);
+}
+
+function flashSaved(){ const s=$("#savedFlag"); if(!s) return; s.classList.add("on"); clearTimeout(saveT);
+  saveT=setTimeout(()=>s.classList.remove("on"),1300); }
+
+function bindSheet(f, e){
+  $("#closeSheet").onclick = closeSheet;
+
+  $("#watchBtn").onclick = function(){
+    e.watched = !e.watched;
+    if(e.watched && !e.date) e.date = today();
+    this.classList.toggle("on", e.watched);
+    this.innerHTML = e.watched ? "&#10003; Watched" : "Mark as watched";
+    $("#dateRow").style.display = e.watched ? "flex" : "none";
+    $("#dateIn").value = e.date || today();
+    save(); flashSaved(); refreshAll();
+    if(e.watched) toast("Frame "+pad(FILMS.indexOf(f)+1)+" exposed");
+  };
+
+  $("#dateIn").onchange = function(){ e.date = this.value; save(); flashSaved(); refreshAll(); };
+
+  $("#starPick").onclick = ev => {
+    const b = ev.target.closest(".starbtn"); if(!b) return;
+    const n = +b.dataset.n;
+    e.rating = (e.rating === n) ? 0 : n;
+    if(e.rating && !e.watched){ $("#watchBtn").click(); }
+    [...$("#starPick").children].forEach((s,i)=>s.classList.toggle("on", i < e.rating));
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    $("#rateHint").textContent = e.rating ? RATE_LABEL[e.rating] : "";
+    save(); flashSaved(); refreshAll();
+  };
+
+  let t1;
+  const auto = (el, key) => { el.oninput = () => { clearTimeout(t1);
+    t1 = setTimeout(()=>{ e[key] = el.value; save(); flashSaved(); dirty = true; }, 420); }; };
+  auto($("#learntIn"), "learnt");
+  auto($("#answerIn"), "answer");
+
+  $("#chipRow").onclick = ev => {
+    const b = ev.target.closest(".chip"); if(!b) return;
+    const t = b.dataset.t, k = e.tags.indexOf(t);
+    if(k>-1) e.tags.splice(k,1); else e.tags.push(t);
+    b.classList.toggle("on", k===-1);
+    save(); flashSaved(); refreshAll();
+  };
+}
+
+function closeSheet(){
+  $("#sheet").classList.remove("on");
+  $("#veil").classList.remove("on");
+  document.body.style.overflow = "";
+  openId = null;
+  if(dirty){ dirty = false; refreshAll(); }
+}
+$("#veil").onclick = closeSheet;
+document.addEventListener("keydown", e => { if(e.key==="Escape" && openId) closeSheet(); });
+
+/* ============================================================
+   LOG
+   ============================================================ */
+function renderLog(){
+  const seen = FILMS.filter(f=>has(f.id))
+    .sort((a,b)=>(DB.entries[b.id].date||"").localeCompare(DB.entries[a.id].date||""));
+  $("#logCount").textContent = seen.length + (seen.length===1?" entry":" entries");
+  const intro = $("#logIntro"), list = $("#logList");
+  if(!seen.length){
+    intro.textContent = "Nothing here yet.";
+    list.innerHTML = '<div class="card"><h3>Your first entry starts a record</h3>'+
+      '<p>Watch anything from the Journey tab, then mark it watched and write two lines. In a year this page is the actual point of the whole thing.</p></div>';
+    return;
+  }
+  intro.textContent = "What each one did to you, newest first.";
+  list.innerHTML = seen.map(f=>{
+    const e = DB.entries[f.id];
+    const body = (e.learnt && e.learnt.trim()) ? esc(e.learnt)
+      : ((e.answer && e.answer.trim()) ? esc(e.answer) : "");
+    return '<button class="logitem" data-id="'+f.id+'">'+
+      '<div class="logtop"><h3>'+esc(f.t)+'</h3><span class="logdate">'+fmtDate(e.date)+'</span></div>'+
+      '<div class="fmeta">'+(e.rating?'<span class="stars">'+starStr(e.rating)+'</span>':'')+
+        (e.tags.length?'<span class="tagdot">'+e.tags.map(esc).join(" &middot; ")+'</span>':'')+'</div>'+
+      (body ? '<div class="logbody">'+body+'</div>'
+            : '<div class="logempty">No note written &mdash; tap to add one</div>')+
+    '</button>';
+  }).join("");
+}
+
+/* ============================================================
+   LEDGER
+   ============================================================ */
+function bar(label, sub, val, max, cls){
+  const pct = max ? Math.round(val/max*100) : 0;
+  return '<div class="bar"><div class="barhead"><span>'+label+'</span><span>'+sub+'</span></div>'+
+    '<div class="track"><div class="fill '+(cls||"")+'" data-w="'+pct+'"></div></div></div>';
+}
+function renderStats(){
+  const seen = FILMS.filter(f=>has(f.id));
+  const rated = seen.filter(f=>DB.entries[f.id].rating>0);
+  const mins = seen.reduce((a,f)=>a+f.run,0);
+  const notes = seen.filter(f=>{const e=DB.entries[f.id];return (e.learnt+e.answer).trim().length>0;}).length;
+
+  $("#statBig").innerHTML = pad(seen.length)+'<small> / 30</small>';
+  $("#statHours").textContent = mins ? hhmm(mins) : "0h";
+  $("#statAvg").textContent = rated.length
+    ? (rated.reduce((a,f)=>a+DB.entries[f.id].rating,0)/rated.length).toFixed(1) : "—";
+  $("#statNotes").textContent = notes;
+
+  const dates = seen.map(f=>DB.entries[f.id].date).filter(Boolean).sort();
+  if(dates.length){
+    const days = Math.round((Date.now()-new Date(dates[dates.length-1]+"T00:00:00"))/864e5);
+    $("#statLast").textContent = days<=0?"Today":days===1?"Yesterday":days+"d ago";
+  } else $("#statLast").textContent = "—";
+
+  $("#chapBars").innerHTML = CHAPTERS.map((c,ci)=>{
+    const l = FILMS.filter(f=>f.ch===ci), d = l.filter(f=>has(f.id)).length;
+    return bar(c.n+". "+esc(c.title), d+"/"+l.length, d, l.length);
+  }).join("");
+
+  const areas = {};
+  FILMS.forEach(f=>f.areas.forEach(a=>{
+    areas[a] = areas[a] || {tot:0,got:0};
+    areas[a].tot++; if(has(f.id)) areas[a].got++;
+  }));
+  const arr = Object.entries(areas)
+    .sort((a,b)=>(a[1].got/a[1].tot)-(b[1].got/b[1].tot) || b[1].tot-a[1].tot)
+    .slice(0,12);
+  $("#areaHint").textContent = "Weakest coverage first, so you can see which part of life the list hasn't made you think about yet.";
+  $("#areaBars").innerHTML = arr.map(([k,v])=>bar(esc(k), v.got+"/"+v.tot, v.got, v.tot, "pen")).join("");
+
+  const maxR = Math.max(1, ...[1,2,3,4,5].map(n=>rated.filter(f=>DB.entries[f.id].rating===n).length));
+  $("#rateBars").innerHTML = [5,4,3,2,1].map(n=>{
+    const c = rated.filter(f=>DB.entries[f.id].rating===n).length;
+    return bar(starStr(n), c||"—", c, maxR, "amber");
+  }).join("");
+
+  const shut = CHAPTERS.map((c,ci)=>({c,ci})).filter(o=>!FILMS.some(f=>f.ch===o.ci && has(f.id)));
+  $("#unopened").innerHTML = shut.length
+    ? '<h3>'+shut.length+(shut.length===1?" chapter":" chapters")+' you haven\'t started</h3>'+
+      '<p class="why">'+shut.map(o=>o.c.n+". "+esc(o.c.title)).join("<br>")+'</p>'
+    : '<h3>Every chapter is open</h3><p class="why">You have touched all nine dimensions at least once. Now it is about depth, not coverage.</p>';
+
+  requestAnimationFrame(()=>document.querySelectorAll("#s-stats .fill")
+    .forEach(f=>f.style.width = f.dataset.w+"%"));
+}
+
+/* ============================================================
+   MARGINS
+   ============================================================ */
+$("#editorial").innerHTML = EDITORIAL.map(x=>
+  '<div class="cut"><div class="cutmark'+(x.k==="add"?" add":"")+'">'+(x.k==="add"?"ADDED":"CUT")+'</div>'+
+  '<div><h4>'+esc(x.t)+'</h4><p>'+esc(x.p)+'</p></div></div>').join("");
+$("#bench").innerHTML = BENCH.map(x=>
+  '<div class="cut"><div class="cutmark add" style="color:var(--dust-dim)">'+x.y+'</div>'+
+  '<div><h4>'+esc(x.t)+'</h4><p>'+esc(x.p)+'</p></div></div>').join("");
+
+/* ============================================================
+   NAV + WIRING
+   ============================================================ */
+function refreshAll(){ renderStrip(false); renderTonight(); renderChapters(); renderLog(); renderStats(); }
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick = ()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");
+  $("#s-"+t.dataset.go).classList.add("on");
+  window.scrollTo({top:0});
+  if(t.dataset.go==="stats") renderStats();
+});
+
+$("#chapters").addEventListener("click", e=>{
+  const b = e.target.closest(".film"); if(b) openFilm(b.dataset.id);
+});
+$("#logList").addEventListener("click", e=>{
+  const b = e.target.closest(".logitem"); if(b) openFilm(b.dataset.id);
+});
+$("#tonight").onclick = ()=> tonightId && openFilm(tonightId);
+$("#shuffleBtn").onclick = ()=>{
+  const un = FILMS.filter(f=>!has(f.id) && f.id!==tonightId);
+  if(!un.length) return;
+  renderTonight(un[Math.floor(Math.random()*un.length)]);
+};
+
+/* ---------- data ---------- */
+function download(name, text, type){
+  const b = new Blob([text], {type:type});
+  const u = URL.createObjectURL(b), a = document.createElement("a");
+  a.href = u; a.download = name; document.body.appendChild(a); a.click();
+  a.remove(); setTimeout(()=>URL.revokeObjectURL(u), 1000);
+}
+$("#expJson").onclick = ()=>{
+  download("long-take-backup-"+today()+".json", JSON.stringify(DB,null,2), "application/json");
+  toast("Backup downloaded");
+};
+$("#expMd").onclick = ()=>{
+  let md = "# The Long Take\n\nA film log. Exported "+fmtDate(today())+".\n";
+  CHAPTERS.forEach((c,ci)=>{
+    const l = FILMS.filter(f=>f.ch===ci && has(f.id));
+    if(!l.length) return;
+    md += "\n## "+c.n+". "+c.title+"\n";
+    l.forEach(f=>{
+      const e = DB.entries[f.id];
+      md += "\n### "+f.t+" ("+f.y+")\n";
+      md += "Watched: "+(fmtDate(e.date)||"—")+(e.rating?"  ·  "+e.rating+"/5":"")+
+            (e.tags.length?"  ·  "+e.tags.join(", "):"")+"\n";
+      if((e.learnt||"").trim()) md += "\n**What it did to me**\n\n"+e.learnt.trim()+"\n";
+      if((e.answer||"").trim()) md += "\n**"+f.q+"**\n\n"+e.answer.trim()+"\n";
+    });
+  });
+  download("long-take-notes-"+today()+".md", md, "text/markdown");
+  toast("Notes downloaded");
+};
+$("#impBtn").onclick = ()=> $("#impFile").click();
+$("#impFile").onchange = function(){
+  const file = this.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!d || typeof d.entries !== "object") throw new Error("shape");
+      let n = 0;
+      Object.keys(d.entries).forEach(k=>{
+        if(!FILMS.some(f=>f.id===k)) return;
+        const s = d.entries[k];
+        DB.entries[k] = {watched:!!s.watched, date:s.date||"", rating:+s.rating||0,
+          learnt:s.learnt||"", answer:s.answer||"", tags:Array.isArray(s.tags)?s.tags:[]};
+        n++;
+      });
+      save(); refreshAll(); toast("Restored "+n+" films");
+    }catch(err){ toast("That file isn't a Long Take backup"); }
+    this.value = "";
+  };
+  r.readAsText(file);
+};
+$("#resetBtn").onclick = ()=>{
+  if(!confirm("Erase every rating and note on this device? Export a backup first if you want to keep them.")) return;
+  DB = {entries:{}, created:new Date().toISOString()};
+  save(); refreshAll(); toast("Everything erased");
+};
+
+/* ---------- installable on home screen ---------- */
+try{
+  const mf = {name:"The Long Take", short_name:"Long Take", start_url:".", display:"standalone",
+    background_color:"#0F1413", theme_color:"#0F1413",
+    icons:[{src:"data:image/svg+xml,"+encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='#0F1413'/><circle cx='256' cy='256' r='150' fill='none' stroke='#E3A13F' stroke-width='22'/><path d='M256 86v340M86 256h340' stroke='#E3A13F' stroke-width='12'/></svg>"),
+      sizes:"512x512", type:"image/svg+xml", purpose:"any"}]};
+  const l = document.createElement("link");
+  l.rel = "manifest";
+  l.href = URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:"application/manifest+json"}));
+  document.head.appendChild(l);
+}catch(e){}
+
+/* ---------- go ---------- */
+renderStrip(true);
+renderTonight();
+renderChapters();
+renderLog();
+renderStats();
+</script>
+</body>
+</html>
